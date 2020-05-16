@@ -4,6 +4,9 @@
 
 #define EMPTY_LINE 3
 #define DECIMAL    10
+#define MAX_INT_32 2147483647
+#define MIN_INT_32 (-INT32_MAX-1)
+
 // Intenta parsear un string separado por espacios en un array de int
 // ante un error reporta por stderr y devuelve 0.
 int parser(char * line, int ** result, size_t * size_result);
@@ -56,7 +59,7 @@ int main(int argc, const char * argv[]){
 		if(**ptr2str == '\n' ) break;
 		
 		tmp = strtol(*ptr2str, ptr2str, DECIMAL); //Si el resultado no se puede representar devuelve cero, la funcion adelanta ptr2str hasta el proximo caracter numerico luego del num leido
-		if(tmp > INT32_MAX || tmp < INT32_MIN) 
+		if(tmp > MAX_INT_32 || tmp < MIN_INT_32) 
 			tmp = 0;
 
 		vector[size++] = (int) tmp;
