@@ -9,31 +9,26 @@ void merge_sort(int *vec, size_t len) {
         return;
     }
 
-    int left_len = (len / 2) + 1;
-    int right_len = len / 2;
-    int *left = clone_vector(vec, 0, (len / 2) + 1);
-    int *right = clone_vector(vec, len / 2, len);
+    int i = 0;
+    int middle = len / 2;
 
-    merge_sort(left, left_len - 1);
-    merge_sort(right, len - right_len);
-    merge(vec, left, right, left_len - 1, len - right_len);
+    int *left = (int *) malloc(sizeof(int) * middle);
+    int *right = (int *) malloc(sizeof(int) * len - middle);
+
+    for (i = 0; i < middle; i++) {
+        left[i] = vec[i];
+    }
+
+    for (i = 0; i < len - middle; i++) {
+        right[i] = vec[i + middle];
+    }
+
+    merge_sort(left, middle);
+    merge_sort(right, len - middle - 1);
+    merge(vec, left, right, middle, len - middle - 1);
 
     free(left);
     free(right);
-}
-
-int * clone_vector(int *vec, int from, size_t to) {
-    int *vec_aux;
-    int i;
-
-    //Quizás se podría validar si se queda sin memoria, ver como hacer en assembly
-    vec_aux = (int *) malloc((to - from) * sizeof(int));
-
-    for (i = from; i < to; i++) {
-        vec_aux[i - from] = vec[i];
-    }
-
-    return vec_aux;
 }
 
 void merge(int *vec, const int *left, const int *right, int left_len, int right_len) {
