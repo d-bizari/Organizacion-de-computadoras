@@ -1,8 +1,9 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-
+#include <unistd.h>
 #define OPEN_FILE 4
 #define WRITE_FILE 5
 #define OPEN_WRITE_FILE 6
@@ -11,6 +12,8 @@
 #define MAX_INT_32 2147483647
 #define MIN_INT_32 (-INT32_MAX-1)
 
+
+extern int* merge_sort(int * array, size_t lenght);
 
 int cliCommands(int argc, char const * argv[], char const* argv_inputs[]) {
 	argv_inputs[0] = "";
@@ -56,26 +59,30 @@ int cliCommands(int argc, char const * argv[], char const* argv_inputs[]) {
 // ante un error reporta por stderr y devuelve 0.
 int parser(char * line, int ** result, size_t * size_result);
 int main(int argc, const char * argv[]){
-	char str[20000];
-
-	while(fgets(str, 20000, stdin)){
-		int * vec = NULL;
-		size_t s = 0;
-
-		parser(str,&vec, &s);
-
-		for(size_t i = 0; i < s;i++){
-			printf("%d ", vec[i]);
-		}
-
-		printf("\n");
-		free(vec);
+	int values[5] = {1, 2, 3, 8, 10};
+	int* anotherSameArray = merge_sort(values, 5);
+	for (int i = 0 ; i < 5; i++) {
+		printf("%d\n", anotherSameArray[i]);
 	}
+	return 0;
+	//char str[20000];
 
-	char* inputs[2];
-	int action = cliCommands(argc, argv, inputs) == EXIT_FAILURE;
-	if (action == EXIT_FAILURE) return EXIT_FAILURE;
-	printf("%s", inputs[0]);
+	// const char* inputs[2];
+	// int action = cliCommands(argc, argv, inputs) == EXIT_FAILURE;
+	// if (action == EXIT_FAILURE) return EXIT_FAILURE;
+//	while(fgets(str, 20000, stdin)){
+//		int * vec = NULL;
+//		size_t s = 0;
+
+//		parser(str,&vec, &s);
+
+//		for(size_t i = 0; i < s;i++){
+//			printf("%d ", vec[i]);
+//		}
+
+//		printf("\n");
+//		free(vec);
+//	}
 //	if (action == OPEN_FILE) {
 		//READ_FILE AND ASSIGN TO INPUTS[0]
 //	}
@@ -93,7 +100,7 @@ int main(int argc, const char * argv[]){
 	// printer en file output
 	// repetir ciclo
 	// cerrar archivos
-	return 0;
+	//return 0;
 }
 
  int parser(char * line, int ** result, size_t * size_result){
@@ -124,5 +131,4 @@ int main(int argc, const char * argv[]){
 	*result = vector;
 	*size_result = size;
 
-	return EXIT_SUCCESS;
-}
+	return EXIT_SUCCESS;}
