@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
+#include "merge_sort.h"
 /************ MACROS ***************/
 #define FINISH                 2
 #define INPUT_POS              0
@@ -18,8 +19,8 @@
 #define MSG_ERROR_MALLOC       "Error allocating memory"
 #define VERSION                 0.1
 
-// Funcion escrita en assembly
-extern int* mergesort(int * array, size_t lenght);
+// // Funcion escrita en assembly
+// void merge_sort(int * array, size_t lenght);
 
 // Lee y parsea commands in line arguments
 int cliCmd(int argc, char const * argv[], FILE * files[]);
@@ -38,6 +39,9 @@ int main(int argc, const char * argv[]){
 	if(status != EXIT_SUCCESS){
 		return status;
 	}
+	if (!files[1]) {
+		files[1] = stdout;
+	}
 
 	while((largo = getline(&line, &tam, files[INPUT_POS])) != -1){
 		size_t n = 0;
@@ -54,11 +58,14 @@ int main(int argc, const char * argv[]){
 			free(line);
 			return status;
 		}
-
 		merge_sort(vector,n);
-
 		for(size_t i = 0; i < n; i++){
-			fprintf(files[OUTPUT_POS], "%d ", vector[i]);
+			if (i != n-1) {
+				fprintf(files[1], "%d ", vector[i]);
+			}
+			else {
+				fprintf(files[1], "%d", vector[i]);
+			}
 		}
 		fprintf(files[OUTPUT_POS], "\n");
 

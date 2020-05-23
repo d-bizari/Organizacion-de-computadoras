@@ -4,8 +4,8 @@ from os import remove
 from contextlib import redirect_stdout
 from subprocess import Popen, PIPE
 
-def useTpWithFile(nameFile):
-    p = Popen(["../src/./tp1", "-i", nameFile], stdout=PIPE, stderr=PIPE)
+def useTpWithFile(nameFile, placeWhereIsLocated = "../src/./tp1"):
+    p = Popen([placeWhereIsLocated, "-i", nameFile], stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
     rc = p.returncode
     return output
@@ -14,7 +14,7 @@ def checkOutput(returnedString, nameOfFile, keepTheName = False):
     theSame = True
     if (not str(returnedString) == returnedString):
         returnedString = returnedString.decode('ascii')
-    arrayWithAnswers = returnedString.split('\n')[1:]
+    arrayWithAnswers = returnedString.split('\n')
     with open(nameOfFile + ('Answer' if not keepTheName else ""), 'r') as answer:
         i = 0
         for line in answer:
@@ -68,4 +68,4 @@ def testNormalCases():
 
 def testTP1(file):
     if not testNormalCases():
-        print("Failed in big test file")
+        print("Failed in a test, check the created file to know which")

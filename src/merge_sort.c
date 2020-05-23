@@ -25,8 +25,8 @@ void merge_sort(int *vec, size_t len) {
     }
 
     merge_sort(left, middle);
-    merge_sort(right, len - middle - 1);
-    merge(vec, left, right, middle, len - middle - 1);
+    merge_sort(right, len - middle);
+    merge(vec, left, right, middle, len - middle);
 
     free(left);
     free(right);
