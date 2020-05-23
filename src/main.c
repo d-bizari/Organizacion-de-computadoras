@@ -1,134 +1,106 @@
-#define _POSIX_C_SOURCE 200809L //Para getline()
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
-/************ MACROS ***************/
-#define FINISH                 2
-#define INPUT_POS              0
-#define OUTPUT_POS             1
-#define EMPTY_LINE             3
-#define DECIMAL         	   10
-#define MAX_INT_32      	   2147483647
-#define MIN_INT_32             (-INT32_MAX-1)
-#define MSG_HELP               "Usage:\ntp1 -h\ntp1 -V\ntp1 -i in_file -o out_file\nOptions:\n-V, --version Print version and quit.\n-h, --help Print this information and quit.\n-i, --input Specify input stream/file, \"-\" for stdin.\n-o, --output Specify output stream/file, \"-\" for stdout.\n"
-#define MSG_ERROR_OPEN_INPUT   "Error opening input file"
-#define MSG_ERROR_OPEN_OUTPUT  "Error opening output file"
-#define MSG_ERROR_MALLOC       "Error allocating memory"
-#define VERSION                 0.1
+#define OPEN_FILE 4
+#define WRITE_FILE 5
+#define OPEN_WRITE_FILE 6
+#define EMPTY_LINE 3
+#define DECIMAL    10
+#define MAX_INT_32 2147483647
+#define MIN_INT_32 (-INT32_MAX-1)
 
-// Funcion escrita en assembly
-extern int* mergesort(int * array, size_t lenght);
 
-// Lee y parsea commands in line arguments
-int cliCmd(int argc, char const * argv[], FILE * files[]);
+extern int* merge_sort(int * array, size_t lenght);
 
-// Intenta parsear un string separado por espacios en un array de int
-// ante un error reporta por stderr y devuelve 0. Queda a cargo del cliente la liberacion de memoria.
-int parser(char * line, int ** result, size_t * size_result);
-
-int main(int argc, const char * argv[]){
-	FILE * files[2];
-	char * line = NULL;
-	size_t tam = 0;
-	ssize_t largo = 0;
-
-	int status = cliCmd(argc, argv, files);
-	if(status != EXIT_SUCCESS){
-		return status;
-	}
-	
-	while((largo = getline(&line, &tam, files[INPUT_POS])) != -1){
-		size_t n = 0;
-		int *  vector = NULL;
-
-		status = parser(line, &vector, &n); 
-		if(status == EMPTY_LINE){
-			fprintf(files[OUTPUT_POS], "\n");
-			free(line);
-			line = NULL;
-			continue;
-		}
-		if(status != EXIT_SUCCESS){
-			free(line);
-			return status;
-		}
-
-		merge_sort(vector,n);
-
-		for(size_t i = 0; i < n; i++){
-			fprintf(files[OUTPUT_POS], "%d ", vector[i]);
-		}
-		fprintf(files[OUTPUT_POS], "\n");
-	
-		free(vector);
-		free(line);		
-		line = NULL;
-	}
-	
-	free(line);
-
-	for(size_t i = 0; i < 2; i++)
-		if(files[i]!=stdin && files[i]!=stdout) fclose(files[i]);
-	
-	return EXIT_SUCCESS;
-}
-
-int cliCmd(int argc, char const * argv[], FILE * files[]) {
+int cliCommands(int argc, char const * argv[], char const* argv_inputs[]) {
+	argv_inputs[0] = "";
+	argv_inputs[1] = "";
 	int valueToReturn = EXIT_SUCCESS;
-	files[INPUT_POS] = NULL;
-	files[OUTPUT_POS] = NULL;
-
 	if (argc >  5) {
-		fprintf(stderr, "Too many parameters -h for help\n");
-		//write(2, "Too many parameters -h for help\n", 0);
-		valueToReturn = FINISH;
+		write(2, "Too many parameters -h for help\n", 0);
+		valueToReturn = EXIT_FAILURE;
 	}
 	if (argc < 2) {
-		fprintf(stderr, "At least one parameter is needed, use -h for help\n");
-		//write(2, "At least one parameter is needed, use -h for help\n", 0);
-		valueToReturn = FINISH;
+		write(2, "At least one parameter is needed, use -h for help\n", 0);
+		valueToReturn = EXIT_FAILURE;
 	}
-
-	for(size_t i = 1; i < argc; i++){
-		if (!(strcmp(argv[i], "-h") && strcmp(argv[i], "--help"))){
-			fprintf(stdout, "%s", MSG_HELP);
-			valueToReturn = EXIT_SUCCESS;
-			break;
+	if (argc == 2 && !(strcmp(argv[1], "-h") && strcmp(argv[1], "--help"))) {
+		char* msg = "Usage:\ntp1 -h\ntp1 -V\ntp1 -i in_file -o out_file\nOptions:\n-V, --version Print version and quit.\n"
+		"-h, --help Print this information and quit.\n-i, --input Specify input stream/file, \"-\" for stdin.\n"
+		"-o, --output Specify output stream/file, \"-\" for stdout.\n";
+		write(1, msg, 0);
+		valueToReturn = EXIT_FAILURE;
 		}
-		if (!(strcmp(argv[i], "-V") && strcmp(argv[i], "--version"))){
-			fprintf(stdout, "%.2f", VERSION);
-			valueToReturn = EXIT_SUCCESS;
-			break;
-		}
-		if (!(strcmp(argv[i], "-i") && strcmp(argv[i], "--input"))){
-			if(strcmp("-",argv[i+1])){
-				files[INPUT_POS] = fopen(argv[i+1],"r");
-				if(!files[INPUT_POS]){
-					fprintf(stderr, "%s", MSG_ERROR_OPEN_INPUT);
-					valueToReturn = EXIT_FAILURE;
-					break;
-				}
-			}else{
-				files[INPUT_POS] = stdin;
-			}
-		}
-		if (!(strcmp(argv[i], "-o") && strcmp(argv[i], "--output"))){
-			if(strcmp("-",argv[i+1])){
-				files[OUTPUT_POS] = fopen(argv[i+1],"w");
-				if(!files[OUTPUT_POS]){
-					fprintf(stderr, "%s", MSG_ERROR_OPEN_OUTPUT);
-					valueToReturn = EXIT_FAILURE;
-					break;
-				}
-			}else {
-				files[OUTPUT_POS] = stdout;
-			}
-		}
+	else if (argc == 2) {
+		argv_inputs[0] = argv[1];
 	}
-	
+	if (argc == 4 && !(strcmp(argv[2], "-o") && strcmp(argv[2], "--output")) && (strcmp(argv[1], "-i") && strcmp(argv[1], "--input"))) {
+		argv_inputs[0] = argv[1];
+		argv_inputs[1] = argv[3];
+		return WRITE_FILE;
+	}
+	if (argc == 3 && !(strcmp(argv[1], "-i") && strcmp(argv[1], "--input"))) {
+		argv_inputs[0] = argv[2];
+		argv_inputs[1] = "";
+		return EXIT_SUCCESS;
+	}
+	if (argc == 5 && !(strcmp(argv[3], "-o") && strcmp(argv[3], "--output")) && !(strcmp(argv[1], "-i") && strcmp(argv[1], "--input"))) {
+		argv_inputs[0] = argv[2];
+		argv_inputs[1] = argv[4];
+		return OPEN_WRITE_FILE;
+	}
 	return valueToReturn;
+}
+
+// Intenta parsear un string separado por espacios en un array de int
+// ante un error reporta por stderr y devuelve 0.
+int parser(char * line, int ** result, size_t * size_result);
+int main(int argc, const char * argv[]){
+	int values[5] = {1, 2, 3, 8, 10};
+	int* anotherSameArray = merge_sort(values, 5);
+	for (int i = 0 ; i < 5; i++) {
+		printf("%d\n", anotherSameArray[i]);
+	}
+	return 0;
+	//char str[20000];
+
+	// const char* inputs[2];
+	// int action = cliCommands(argc, argv, inputs) == EXIT_FAILURE;
+	// if (action == EXIT_FAILURE) return EXIT_FAILURE;
+//	while(fgets(str, 20000, stdin)){
+//		int * vec = NULL;
+//		size_t s = 0;
+
+//		parser(str,&vec, &s);
+
+//		for(size_t i = 0; i < s;i++){
+//			printf("%d ", vec[i]);
+//		}
+
+//		printf("\n");
+//		free(vec);
+//	}
+//	if (action == OPEN_FILE) {
+		//READ_FILE AND ASSIGN TO INPUTS[0]
+//	}
+//	if (action == WRITE_FILE) {
+		//WITH THIS WE KNOW THAT A COMMAND TO WRITE A FILE WAS SEND AND THE LOCATION
+		//IS IN INPUTS[1]
+//	}
+//	if (action == OPEN_WRITE_FILE) {
+		//COMBINATION OF THE ABOVE CASES, A COMBINATION OF METHODS SHOULD BE PUT HERE
+//	}
+	// Apertura de archivo
+	// Inicio de while != feof(archivo)
+	// Intentar parsear linea
+	// aplicar mergesort
+	// printer en file output
+	// repetir ciclo
+	// cerrar archivos
+	//return 0;
 }
 
  int parser(char * line, int ** result, size_t * size_result){
@@ -140,10 +112,7 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 		if(line[i] == ' ') n_sep++;
 
 	int * vector = (int *) calloc(n_sep + 2, sizeof(int));
-	if (!vector){
-		fprintf(stderr, "%s", MSG_ERROR_MALLOC);
-		return EXIT_FAILURE;
-	} 
+	if (!vector) return EXIT_FAILURE;
 
 	size_t size = 0;
 	long tmp;
@@ -162,5 +131,4 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 	*result = vector;
 	*size_result = size;
 
-	return EXIT_SUCCESS;
-}
+	return EXIT_SUCCESS;}

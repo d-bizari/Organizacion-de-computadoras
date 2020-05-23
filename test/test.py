@@ -49,7 +49,7 @@ def createTestFile(fileName, linesPerArray, differentAmountArrays, maximumAmount
 
 def testValue(nameFile, linesPerArray, differentAmountArrays, maximumAmountOfNumber, randomize = False):
     createTestFile(nameFile, linesPerArray, differentAmountArrays, maximumAmountOfNumber, randomize)
-    result = useTpWithFile(nameFile + "Answer") #This is like this for now because in a future
+    result = useTpWithFile(nameFile)
     #we will make the merge okay, so when that is done, we should change that
     isTheSame = checkOutput(result, nameFile)
     if (isTheSame):
