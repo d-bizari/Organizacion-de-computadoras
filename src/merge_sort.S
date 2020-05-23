@@ -40,14 +40,48 @@ mallocs:
 	sll   t1, t2, 2  # Multiplico por 4 (tamanio int)
 	move  a0, t1     # argumento 0 size bytes
   	jal mymalloc     # mymalloc(sizeof(int) * len - middle)
-  	sw v0, 20(sp)	 # 16(sp) = left
+  	sw v0, 20(sp)	 # 20(sp) = right
+
+
+    li t4, 0 # Iterador left
+    lw t5, 48(fp) # Cargo array en t5
+    lw t6, 16(sp) # Cargo left en t6
+
+loop_left:
+    # 16(sp) left, 48(fp) array
+    bge t4, t0, exit_left
+    lw t7, 0(t5) # Cargo primer elemento de array en t7
+    sw t7, 0(t6) # Cargo t7 en left
+    addi t5, t5, 4 # Sumo int al array
+    addi t6, t6, 4 # Sumo int al left
+    addi t4, t4, 1 # Sumo iterador
+    j loop_left
+    
+exit_left:
+    li t4, 0 # Iterador right
+    lw t5, 48(fp) # Cargo array en t5
+    lw t6, 20(sp) # Cargo right en t6
+    sll   t3, t0, 2 # Multiplico t0 por 4 y guardo en t3
+    add t5, t5, t3 # array <- array + middle
+
+loop_right:
+     bge t4, t2, exit_right
+     lw t7, 0(t5) # Cargo primer elemento de array en t7
+     sw t7, 0(t6) # Cargo t7 en right
+     addi t5, t5, 4 # Siguiente posicion en int
+     addi t6, t6, 4 # Siguiente posicion
+     addi t4, t4, 1 # Avanza iterador
+     j loop_right
+
+exit_right:
+
 
 copyValues_loop:
 	beqz t0, _return
-  	lw t2, 0(t1)
-  	sw t2, 0(t3)
-  	addiu t3, t3, 4
-  	addiu t1, t1, 4
+  	lw t2, 0(t1) # t2 = *(t1)
+  	sw t2, 0(t3) # *(t3) = t2
+  	addiu t3, t3, 4 # Aumento puntero en int
+  	addiu t1, t1, 4 # Aumento puntero en int
   	addi t0, t0, - 1
 	j copyValues_loop
 
