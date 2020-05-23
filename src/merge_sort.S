@@ -5,7 +5,7 @@
 .ent merge_sort
 
 merge_sort:
-  .frame	fp, 48, ra
+  	.frame	fp, 48, ra
 	.set	noreorder
 	.cpload t9
 	.set	reorder
@@ -88,51 +88,55 @@ exit_right:
     jal   merge_sort # #merge_sort(right, len - middle);
 
 merge:
-  li      t0, 0      # t0 es para left, t1 es para right
-  li      t1, 0      # Cargo los registros t1 y t0 con cero
-  lw      t2, 24(sp) # Largo del arreglo left
-  lw      t3, 28(sp) # Largo del right
-  lw      t4, 16(sp) # Cargamos el arreglo left en t4
-  lw      t5, 20(sp) # Cargamos el arreglo right en t5
-  lw      t8, 48(sp) # Cargamos el arreglo total en t8
-  sll     t2, t2, 2  # Multiplico t2 por 4 asi se puede comparar correctamente con t0
-  sll     t3, t3, 2  # Rt arriba
+	li      t0, 0      # t0 es para left, t1 es para right
+	li      t1, 0      # Cargo los registros t1 y t0 con cero
+	lw      t2, 24(sp) # Largo del arreglo left
+	lw      t3, 28(sp) # Largo del right
+	lw      t4, 16(sp) # Cargamos el arreglo left en t4
+	lw      t5, 20(sp) # Cargamos el arreglo right en t5
+	lw      t8, 48(sp) # Cargamos el arreglo total en t8
+	sll     t2, t2, 2  # Multiplico t2 por 4 asi se puede comparar correctamente con t0
+	sll     t3, t3, 2  # Rt arriba
 
 mergeLoop:
-  bge     t0, t2, exitLoop
-  bge     t1, t3, exitLoop # Condicion de quiebre (si i o j son mayores que el len)
-  lw      t6, 0(t4)  # Cargo primer elemento de array left en t6
-  lw      t7, 0(t5)  # Cargo primer elemento de array right en t7
-  bge     t6, t7,else# Brancheo a else si lo que esta en t6 >= t7
-  sw      t6, 0(t8)  # Vec[i + j] = left[i];
-  addi    t0, t0, 4  # i++
-  add     t4, t4, 4  # Actualizamos la posicion de arrLeft
-  add     t8, t8, 4  # Actualizo la posicion del arreglo en t8
-  j       mergeLoop
+	bge     t0, t2, exitLoop_l
+	bge     t1, t3, exitLoop_r # Condicion de quiebre (si i o j son mayores que el len)
+	lw      t6, 0(t4)          # Cargo elemento de array left en t6
+	lw      t7, 0(t5)  		   # Cargo elemento de array right en t7
+	bge     t6, t7,else		   # Brancheo a else si lo que esta en t6 >= t7
+	sw      t6, 0(t8)  		   # Vec[i + j] = left[i];
+	addi    t0, t0, 4  		   # i++
+	add     t4, t4, 4  		   # Actualizamos la posicion de arrLeft
+	add     t8, t8, 4  		   # Actualizo la posicion del arreglo en t8
+	j       mergeLoop
 else:
-  sw      t7, 0(t8)  # Vec[i + j] = left[i];
-  addi    t1, t1, 4  # j++
-  add     t5, t5, 4  # Actualizamos la posicion de arrLeft
-  add     t8, t8, 4  # Actualizo la posicion del arreglo en t8
-  j       mergeLoop
+	sw      t7, 0(t8)  		   # Vec[i + j] = right[j];
+	addi    t1, t1, 4          # j++
+	add     t5, t5, 4          # Actualizamos la posicion de arrRight
+	add     t8, t8, 4          # Actualizo la posicion del arreglo en t8
+	j       mergeLoop
 
-while(i < left_len && j < right_len) {
-    if (left[i] < right[j]) {
-        vec[i + j] = left[i];
-        i++;
-    } else {
-        vec[i + j] = right[j];
-        j++;
-    }
-}
-exitLoop:
-for(; i < left_len; i ++) {
-    vec[i + j] = left[i];
-}
+# t2 = len_l * 4 
+# t3 = len_r * 4
+# t0 = i * 4
+# t1 = j * 4
+exitLoop_l: # i = len_l, entonces llenamos right
+	bge     t1, t3, frees    # j >= len_r then branch to fress
+	lw      t7, 0(t5)        # t7 = *(right)
+	sw      t7, 0(t8)  		 # Vec[i + j] = right[j];
+	addi    t1, t1, 4        # j++
+	add     t5, t5, 4        # Actualizamos la posicion de arrRight
+	add     t8, t8, 4        # Actualizo la posicion del arreglo en t8
+	j       exitLoop_l
 
-for(; j < right_len; j ++) {
-    vec[i + j] = right[j];
-}
+exitLoop_r: # j = len_r, entonces llenamos left
+	bge     t0, t2, frees    # i >= len_l then branch to fress
+	lw      t6, 0(t4)        # t6 = *(left)
+	sw      t6, 0(t8)  		 # Vec[i + j] = left[i];
+	addi    t0, t0, 4  		 # i++
+	add     t4, t4, 4  		 # Actualizamos la posicion de arrLeft
+	add     t8, t8, 4  		 # Actualizo la posicion del arreglo en t8
+	j       exitLoop_r
 
 frees:
     lw    t1, 16(sp) # Cargo el puntero del arreglo en t1
@@ -142,7 +146,6 @@ frees:
     lw    t1, 20(sp) # Cargamos el arreglo right en t1
     move  a0, t1     # Lo pongo en el argumento 0
     jal   myfree     # Libero el arreglo
-
 
 _return:
 	lw		gp, 32(sp)
