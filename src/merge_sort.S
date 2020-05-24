@@ -26,7 +26,7 @@ merge_sort:
 	#li 	 t0, 2      # cargo 2 en t0
 	#div  a1, t0     # len / 2
 	#move t0, lo     # cargo en t0 = len / 2
-	
+
 	srl   t0, a1, 1  # cargo en t0 = len / 2
   	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 mallocs:
@@ -34,6 +34,7 @@ mallocs:
 	sll   t1, t0, 2  # Multiplico por 4 (tamanio int)
 	move  a0, t1     # argumento 0 size bytes
 	jal mymalloc     # mymalloc(sizeof(int) * middle)
+  lw    t0, 24(sp) # Se esta guardando el middle(numero) del array left
 	sw    v0, 16(sp)	 # 16(sp) = left
 
 	#t1 size en bytes de memoria
@@ -43,6 +44,8 @@ mallocs:
 	sll   t1, t2, 2  # Multiplico por 4 (tamanio int)
 	move  a0, t1     # argumento 0 size bytes
 	jal mymalloc     # mymalloc(sizeof(int) * len - middle)
+  lw  t2, 28(sp)   # reload the len on t2 to be used in future steps
+  lw    t0, 24(sp) # Se levanta devuelta el valor de t0 para estar seguros que conserva el valor
 	sw v0, 20(sp)	 # 20(sp) = right
 
 
@@ -118,7 +121,7 @@ else:
 	add     t8, t8, 4          # Actualizo la posicion del arreglo en t8
 	j       mergeLoop
 
-# t2 = len_l * 4 
+# t2 = len_l * 4
 # t3 = len_r * 4
 # t0 = i * 4
 # t1 = j * 4
