@@ -17,15 +17,13 @@ merge_sort:
  	sw ra, 40(sp)
  	move fp, sp
 
- 	sw 	a0, 48(fp) # puntero a array
-  	sw 	a1, 52(fp) # size del array
-	li 	t0, 1      # cargo 1 en t0
+  sw 	a0, 48(fp) # puntero a array
+  sw 	a1, 52(fp) # size del array
+  li 	t0, 1      # cargo 1 en t0
 
 	ble	a0, t0, _return	# if a0 <= t0 then return
 
-	li 	 t0, 2      # cargo 2 en t0
-	div  a1, t0     # len / 2
-	move t0, lo    # cargo en t0 = len / 2
+	srl t0, a1, 1 #len/2 y lo storeo en t0
   sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 mallocs:
 	#t1 size en bytes de memoria
@@ -33,7 +31,7 @@ mallocs:
 	move  a0, t1     # argumento 0 size bytes
 	jal mymalloc     # mymalloc(sizeof(int) * middle)
 	sw    v0, 16(sp)	 # 16(sp) = left
-
+  lw t0, 24(sp)
 	#t1 size en bytes de memoria
 	lw  t2, 52(fp)   # Cargo en t2 size del array
 	sub t2, t2, t0   # t2 = len - middle
@@ -43,7 +41,7 @@ mallocs:
 	jal mymalloc     # mymalloc(sizeof(int) * len - middle)
 	sw v0, 20(sp)	 # 20(sp) = right
 
-
+  lw t0, 24(sp)
   li t4, 0 # Iterador left
   lw t5, 48(fp) # Cargo array en t5
   lw t6, 16(sp) # Cargo left en t6
@@ -110,29 +108,33 @@ mergeLoop:
   add     t8, t8, 4  # Actualizo la posicion del arreglo en t8
   j       mergeLoop
 else:
-  sw      t7, 0(t8)  # Vec[i + j] = left[i];
-  addi    t1, t1, 4  # j++
-  add     t5, t5, 4  # Actualizamos la posicion de arrLeft
-  add     t8, t8, 4  # Actualizo la posicion del arreglo en t8
-  j       mergeLoop
+	sw      t7, 0(t8)  		   # Vec[i + j] = right[j];
+	addi    t1, t1, 4          # j++
+	add     t5, t5, 4          # Actualizamos la posicion de arrRight
+	add     t8, t8, 4          # Actualizo la posicion del arreglo en t8
+	j       mergeLoop
 
-while(i < left_len && j < right_len) {
-    if (left[i] < right[j]) {
-        vec[i + j] = left[i];
-        i++;
-    } else {
-        vec[i + j] = right[j];
-        j++;
-    }
-}
-exitLoop:
-for(; i < left_len; i ++) {
-    vec[i + j] = left[i];
-}
+# t2 = len_l * 4
+# t3 = len_r * 4
+# t0 = i * 4
+# t1 = j * 4
+exitLoop_l: # i = len_l, entonces llenamos right
+	bge     t1, t3, frees    # j >= len_r then branch to fress
+	lw      t7, 0(t5)        # t7 = *(right)
+	sw      t7, 0(t8)  		 # Vec[i + j] = right[j];
+	addi    t1, t1, 4        # j++
+	add     t5, t5, 4        # Actualizamos la posicion de arrRight
+	add     t8, t8, 4        # Actualizo la posicion del arreglo en t8
+	j       exitLoop_l
 
-for(; j < right_len; j ++) {
-    vec[i + j] = right[j];
-}
+exitLoop_r: # j = len_r, entonces llenamos left
+	bge     t0, t2, frees    # i >= len_l then branch to fress
+	lw      t6, 0(t4)        # t6 = *(left)
+	sw      t6, 0(t8)  		 # Vec[i + j] = left[i];
+	addi    t0, t0, 4  		 # i++
+	add     t4, t4, 4  		 # Actualizamos la posicion de arrLeft
+	add     t8, t8, 4  		 # Actualizo la posicion del arreglo en t8
+	j       exitLoop_r
 
 frees:
     lw    t1, 16(sp) # Cargo el puntero del arreglo en t1
