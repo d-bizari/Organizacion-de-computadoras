@@ -21,12 +21,14 @@ merge_sort:
   	sw 	a1, 52(fp) # size del array
 	li 	t0, 1      # cargo 1 en t0
 
-	ble	a0, t0, _return	# if a0 <= t0 then return
+	ble	a1, t0, _return	# if a0 <= t0 then return
 
-	li 	 t0, 2      # cargo 2 en t0
-	div  a1, t0     # len / 2
-	move t0, lo    # cargo en t0 = len / 2
-  sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
+	#li 	 t0, 2      # cargo 2 en t0
+	#div  a1, t0     # len / 2
+	#move t0, lo     # cargo en t0 = len / 2
+	
+	srl   t0, a1, 1  # cargo en t0 = len / 2
+  	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 mallocs:
 	#t1 size en bytes de memoria
 	sll   t1, t0, 2  # Multiplico por 4 (tamanio int)
