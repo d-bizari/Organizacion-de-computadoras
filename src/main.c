@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "merge_sort.h"
 /************ MACROS ***************/
 #define FINISH                 2
 #define INPUT_POS              0
@@ -20,7 +19,7 @@
 #define VERSION                 0.1
 
 // // Funcion escrita en assembly
-// void merge_sort(int * array, size_t lenght);
+extern void merge_sort(int * array, size_t lenght);
 
 // Lee y parsea commands in line arguments
 int cliCmd(int argc, char const * argv[], FILE * files[]);
