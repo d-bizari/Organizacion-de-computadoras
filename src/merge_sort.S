@@ -17,21 +17,26 @@ merge_sort:
  	sw ra, 40(sp)
  	move fp, sp
 
-  sw 	a0, 48(fp) # puntero a array
-  sw 	a1, 52(fp) # size del array
-  li 	t0, 1      # cargo 1 en t0
+ 	sw 	a0, 48(fp) # puntero a array
+  	sw 	a1, 52(fp) # size del array
+	li 	t0, 1      # cargo 1 en t0
 
 	ble	a1, t0, _return	# if a0 <= t0 then return
 
-	srl t0, a1, 1 #len/2 y lo storeo en t0
-  sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
+	#li 	 t0, 2      # cargo 2 en t0
+	#div  a1, t0     # len / 2
+	#move t0, lo     # cargo en t0 = len / 2
+
+	srl   t0, a1, 1  # cargo en t0 = len / 2
+  	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 mallocs:
 	#t1 size en bytes de memoria
 	sll   t1, t0, 2  # Multiplico por 4 (tamanio int)
 	move  a0, t1     # argumento 0 size bytes
 	jal mymalloc     # mymalloc(sizeof(int) * middle)
+  lw    t0, 24(sp) # Se esta guardando el middle(numero) del array left
 	sw    v0, 16(sp)	 # 16(sp) = left
-  lw t0, 24(sp)
+
 	#t1 size en bytes de memoria
 	lw  t2, 52(fp)   # Cargo en t2 size del array
 	sub t2, t2, t0   # t2 = len - middle
@@ -39,9 +44,11 @@ mallocs:
 	sll   t1, t2, 2  # Multiplico por 4 (tamanio int)
 	move  a0, t1     # argumento 0 size bytes
 	jal mymalloc     # mymalloc(sizeof(int) * len - middle)
+  lw  t2, 28(sp)   # reload the len on t2 to be used in future steps
+  lw    t0, 24(sp) # Se levanta devuelta el valor de t0 para estar seguros que conserva el valor
 	sw v0, 20(sp)	 # 20(sp) = right
 
-  lw t0, 24(sp)
+
   li t4, 0 # Iterador left
   lw t5, 48(fp) # Cargo array en t5
   lw t6, 16(sp) # Cargo left en t6
