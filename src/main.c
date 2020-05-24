@@ -12,6 +12,7 @@
 #define DECIMAL         	   10
 #define MAX_INT_32      	   2147483647
 #define MIN_INT_32             (-INT32_MAX-1)
+#define MSG_COMMAND_UNKNOWN    "Command unknown, press -h for help"
 #define MSG_HELP               "Usage:\ntp1 -h\ntp1 -V\ntp1 -i in_file -o out_file\nOptions:\n-V, --version Print version and quit.\n-h, --help Print this information and quit.\n-i, --input Specify input stream/file, \"-\" for stdin.\n-o, --output Specify output stream/file, \"-\" for stdout.\n"
 #define MSG_ERROR_OPEN_INPUT   "Error opening input file"
 #define MSG_ERROR_OPEN_OUTPUT  "Error opening output file"
@@ -41,7 +42,9 @@ int main(int argc, const char * argv[]){
 	if (!files[1]) {
 		files[1] = stdout;
 	}
-
+	if (!files[0]) {
+		files[0] = stdin;
+	}
 	while((largo = getline(&line, &tam, files[INPUT_POS])) != -1){
 		size_t n = 0;
 		int *  vector = NULL;
@@ -89,26 +92,25 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 	if (argc >  5) {
 		fprintf(stderr, "Too many parameters -h for help\n");
 		//write(2, "Too many parameters -h for help\n", 0);
-		valueToReturn = FINISH;
+		return FINISH;
 	}
-	if (argc < 2) {
-		fprintf(stderr, "At least one parameter is needed, use -h for help\n");
-		//write(2, "At least one parameter is needed, use -h for help\n", 0);
-		valueToReturn = FINISH;
-	}
-
+	int skip_row = 0;
 	for(size_t i = 1; i < argc; i++){
+		if (skip_row) {
+			skip_row = 0;
+			continue;
+		}
 		if (!(strcmp(argv[i], "-h") && strcmp(argv[i], "--help"))){
 			fprintf(stdout, "%s", MSG_HELP);
-			valueToReturn = EXIT_SUCCESS;
+			valueToReturn = FINISH;
 			break;
 		}
-		if (!(strcmp(argv[i], "-V") && strcmp(argv[i], "--version"))){
+		else if (!(strcmp(argv[i], "-V") && strcmp(argv[i], "--version"))){
 			fprintf(stdout, "%.2f", VERSION);
-			valueToReturn = EXIT_SUCCESS;
+			valueToReturn = FINISH;
 			break;
 		}
-		if (!(strcmp(argv[i], "-i") && strcmp(argv[i], "--input"))){
+		else if (!(strcmp(argv[i], "-i") && strcmp(argv[i], "--input"))){
 			if(strcmp("-",argv[i+1])){
 				files[INPUT_POS] = fopen(argv[i+1],"r");
 				if(!files[INPUT_POS]){
@@ -119,9 +121,10 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 			}else{
 				files[INPUT_POS] = stdin;
 			}
+			skip_row = 1;
 		}
-		if (!(strcmp(argv[i], "-o") && strcmp(argv[i], "--output"))){
-			if(strcmp("-",argv[i+1])){
+		else if (!(strcmp(argv[i], "-o") && strcmp(argv[i], "--output"))){
+			if(strcmp("-",argv[i+1])) {
 				files[OUTPUT_POS] = fopen(argv[i+1],"w");
 				if(!files[OUTPUT_POS]){
 					fprintf(stderr, "%s", MSG_ERROR_OPEN_OUTPUT);
@@ -131,6 +134,12 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 			}else {
 				files[OUTPUT_POS] = stdout;
 			}
+			skip_row = 1;
+		}
+		else {
+			fprintf(stderr, "%s", MSG_COMMAND_UNKNOWN);
+			valueToReturn = EXIT_FAILURE;
+			break;
 		}
 	}
 
@@ -144,13 +153,12 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 	size_t n_sep = 0;
 	for (size_t i=0; line[i]; i++)
 		if(line[i] == ' ') n_sep++;
-
 	int * vector = (int *) calloc(n_sep + 2, sizeof(int));
+	int maxValue = n_sep + 2;
 	if (!vector){
 		fprintf(stderr, "%s", MSG_ERROR_MALLOC);
 		return EXIT_FAILURE;
 	}
-
 	size_t size = 0;
 	long tmp;
 
@@ -163,8 +171,11 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 			tmp = 0;
 
 		vector[size++] = (int) tmp;
+		if (!(size < maxValue)) {
+			maxValue *= 2;
+		}
+		vector = (int*) realloc(vector, sizeof(int) * maxValue);
 	}
-
 	*result = vector;
 	*size_result = size;
 

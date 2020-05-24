@@ -3,11 +3,11 @@ from random import randint
 from os import remove
 from subprocess import Popen, PIPE
 
-def useTpWithFile(nameFile, placeWhereIsLocated = "../src/./tp1"):
+def useTpWithFile(nameFile, placeWhereIsLocated = "../src/./tp1", useStdout = True):
     p = Popen([placeWhereIsLocated, "-i", nameFile], stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
     rc = p.returncode
-    return output
+    return output if useStdout else err
 
 def checkOutput(returnedString, nameOfFile, keepTheName = False):
     theSame = True
@@ -64,9 +64,53 @@ def testNormalCases(file):
         return False
     if not testValue("allRandom", randint(1, 3), randint(0, 20), randint(20, 500), True, filePlace = file):
         return False
+    print("All normal tests ran correctly")
+    return True
+
+def useTpToTestMessages(action, placeWhereIsLocated, useStdout = True):
+    p = Popen([placeWhereIsLocated, action], stdout=PIPE, stderr=PIPE)
+    output, err = p.communicate()
+    rc = p.returncode
+    return output if useStdout else err
+
+def testMessages(file):
+    processCorrect = True
+    if not file:
+        file = "../src/./tp1"
+    if not len(useTpToTestMessages("-h", file)) > 20: #The message here is long, so for performance we will check this way
+        print("Error when using ./tp1 -h")
+        processCorrect = False
+    if (useTpToTestMessages("-V", file).decode('ascii') == ""):
+        print("Error when using ./tp1 -v")
+        processCorrect = False
+    if (len(useTpToTestMessages("Anything", file, useStdout = False)) == 0):
+        print("Error when it should be throwing an error");
+        processCorrect = False
+    return processCorrect
+
+def testWeirdCase(file):
+    with open("testWeirdCase", 'w') as f:
+        f.write("3              bowhehrk 3 4 a 5we2323 ahwigaofgawbhdgawiugdal")
+        f.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n finish?")
+    if useTpWithFile("testWeirdCase", file, useStdout = False) == b'':
+        remove("testWeirdCase")
+        return True
+    return False
+
+def testTP1(file = None):
+    print("Testing usual cases")
+    if not testNormalCases(file):
+        print("Failed in a test, check the created file to know which")
+        return False
+    print("Testing messages")
+    if not testMessages(file):
+        return False
+    print("Testing invalid cases")
+    if not testWeirdCase(file):
+        print("Unknown error while parsing a border case")
+        return False
     print("All tests ran correctly")
     return True
 
-def testTP1(file = None):
-    if not testNormalCases(file):
-        print("Failed in a test, check the created file to know which")
+#For when testing on mips
+testTP1('./tp1')
