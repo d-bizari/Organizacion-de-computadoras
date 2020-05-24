@@ -19,7 +19,7 @@
 #define MSG_ERROR_MALLOC       "Error allocating memory"
 #define VERSION                 0.1
 
-// // Funcion escrita en assembly
+// Funcion escrita en assembly
 extern void merge_sort(int * array, size_t lenght);
 
 // Lee y parsea commands in line arguments
@@ -39,12 +39,6 @@ int main(int argc, const char * argv[]){
 	if(status != EXIT_SUCCESS){
 		return status;
 	}
-	if (!files[1]) {
-		files[1] = stdout;
-	}
-	if (!files[0]) {
-		files[0] = stdin;
-	}
 	while((largo = getline(&line, &tam, files[INPUT_POS])) != -1){
 		size_t n = 0;
 		int *  vector = NULL;
@@ -63,10 +57,10 @@ int main(int argc, const char * argv[]){
 		merge_sort(vector,n);
 		for(size_t i = 0; i < n; i++){
 			if (i != n-1) {
-				fprintf(files[1], "%d ", vector[i]);
+				fprintf(files[OUTPUT_POS], "%d ", vector[i]);
 			}
 			else {
-				fprintf(files[1], "%d", vector[i]);
+				fprintf(files[OUTPUT_POS], "%d", vector[i]);
 			}
 		}
 		fprintf(files[OUTPUT_POS], "\n");
@@ -91,7 +85,6 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 
 	if (argc >  5) {
 		fprintf(stderr, "Too many parameters -h for help\n");
-		//write(2, "Too many parameters -h for help\n", 0);
 		return FINISH;
 	}
 	int skip_row = 0;
@@ -142,7 +135,12 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 			break;
 		}
 	}
-
+	if (!files[INPUT_POS]) {
+		files[INPUT_POS] = stdin;
+	}
+	if (!files[OUTPUT_POS]) {
+		files[OUTPUT_POS] = stdout;
+	}
 	return valueToReturn;
 }
 
