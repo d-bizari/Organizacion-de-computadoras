@@ -1,7 +1,6 @@
 from subprocess import call
 from random import randint
 from os import remove
-from contextlib import redirect_stdout
 from subprocess import Popen, PIPE
 
 def useTpWithFile(nameFile, placeWhereIsLocated = "../src/./tp1"):
@@ -47,25 +46,27 @@ def createTestFile(fileName, linesPerArray, differentAmountArrays, maximumAmount
         arrayOfArrays.append(addRandomNumbers(maximumAmountOfNumbers if not randomizeMax else randint(0, maximumAmountOfNumbers), minNumber))
     writeFiles(fileName, arrayOfArrays, linesPerArray)
 
-def testValue(nameFile, linesPerArray, differentAmountArrays, maximumAmountOfNumber, randomize = False):
+def testValue(nameFile, linesPerArray, differentAmountArrays, maximumAmountOfNumber, randomize = False, filePlace = None):
     createTestFile(nameFile, linesPerArray, differentAmountArrays, maximumAmountOfNumber, randomize)
-    result = useTpWithFile(nameFile)
-    #we will make the merge okay, so when that is done, we should change that
+    result = useTpWithFile(nameFile, filePlace) if filePlace else useTpWithFile(nameFile)
     isTheSame = checkOutput(result, nameFile)
     if (isTheSame):
         remove(nameFile)
         remove(nameFile + "Answer")
     return isTheSame
 
-def testNormalCases():
-    if not testValue("nullTestCase", 0, 0, 0):
+def testNormalCases(file):
+    if not testValue("nullTestCase", 0, 0, 0, filePlace = file):
         return False
-    if not testValue("smallTestCase", 5, 2, 100):
+    if not testValue("smallTestCase", 5, 2, 100, filePlace = file):
         return False
-    if not testValue("BigTestCase", 1, 100, 2000, True):
+    if not testValue("BigTestCase", 1, 100, 2000, True, filePlace = file):
         return False
+    if not testValue("allRandom", randint(1, 3), randint(0, 20), randint(20, 500), True, filePlace = file):
+        return False
+    print("All tests ran correctly")
     return True
 
-def testTP1(file):
-    if not testNormalCases():
+def testTP1(file = None):
+    if not testNormalCases(file):
         print("Failed in a test, check the created file to know which")
