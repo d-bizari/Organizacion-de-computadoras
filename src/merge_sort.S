@@ -1,4 +1,9 @@
 #include <sys/regdef.h>
+#include <sys/syscall.h>
+
+.data
+msg_error: .asciiz "error in mymalloc\n"
+
 .text
 .align 2
 .globl merge_sort
@@ -27,27 +32,29 @@ merge_sort:
   	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 mallocs:
 	#t1 size en bytes de memoria
-	sll   t1, t0, 2  # Multiplico por 4 (tamanio int)
-	move  a0, t1     # argumento 0 size bytes
-	jal mymalloc     # mymalloc(sizeof(int) * middle)
-  lw    t0, 24(sp) # Se esta guardando el middle(numero) del array left
-	sw    v0, 16(sp)	 # 16(sp) = left
+	sll   t1, t0, 2  		 # Multiplico por 4 (tamanio int)
+	move  a0, t1     		 # argumento 0 size bytes
+	jal   mymalloc   		 # mymalloc(sizeof(int) * middle)
+	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc 
+  	lw    t0, 24(sp) 		 # Se esta guardando el middle(numero) del array left
+	sw    v0, 16(sp) 		 # 16(sp) = left
 
 	#t1 size en bytes de memoria
-	lw  t2, 52(fp)   # Cargo en t2 size del array
-	sub t2, t2, t0   # t2 = len - middle
-  sw  t2, 28(sp)   # Guardo len - middle en LTA
-	sll   t1, t2, 2  # Multiplico por 4 (tamanio int)
-	move  a0, t1     # argumento 0 size bytes
-	jal mymalloc     # mymalloc(sizeof(int) * len - middle)
-  lw  t2, 28(sp)   # reload the len on t2 to be used in future steps
-  lw    t0, 24(sp) # Se levanta devuelta el valor de t0 para estar seguros que conserva el valor
-	sw v0, 20(sp)	 # 20(sp) = right
+	lw    t2, 52(fp)   		 # Cargo en t2 size del array
+	sub   t2, t2, t0   		 # t2 = len - middle
+  	sw    t2, 28(sp)   		 # Guardo len - middle en LTA
+	sll   t1, t2, 2  		 # Multiplico por 4 (tamanio int)
+	move  a0, t1     		 # argumento 0 size bytes
+	jal   mymalloc     		 # mymalloc(sizeof(int) * len - middle)
+	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc 
+  	lw    t2, 28(sp)   		 # reload the len on t2 to be used in future steps
+  	lw    t0, 24(sp) 		 # Se levanta devuelta el valor de t0 para estar seguros que conserva el valor
+	sw    v0, 20(sp)		 # 20(sp) = right
 
 
-  li t4, 0 # Iterador left
-  lw t5, 48(fp) # Cargo array en t5
-  lw t6, 16(sp) # Cargo left en t6
+  	li t4, 0      # Iterador left
+  	lw t5, 48(fp) # Cargo array en t5
+  	lw t6, 16(sp) # Cargo left en t6
 
 loop_left:
     # 16(sp) left, 48(fp) array
@@ -154,5 +161,16 @@ _return:
 	lw		ra, 40(sp)
 	addu	sp, sp, 48
 	jr		ra
+
+error_mymalloc:
+	li  a2, 18        # Cantidad de bytes a escribir, en este caso char = 1byte, 18 char = 18bytes
+	la  a1, msg_error # Pasamos puntero donde se encuentra primer char
+	li 	a0, 2         # Elegimos el stream stderr
+	li 	v0, SYS_write # Indicamos operacion a realizar a la syscall
+	syscall           # Llamado a syscall para imprimir por stderr
+exit:
+	li 	v0, SYS_exit # Indicamos operacion a realizar a la syscall
+    li 	a0, 1        # Ponemos valor con el que queremos salir del programa
+    syscall          # Llamado a syscall para finalizar la ejecucion
 
 	.end	merge_sort
