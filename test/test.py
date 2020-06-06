@@ -92,7 +92,7 @@ def testWeirdCase(file):
     with open("testWeirdCase", 'w') as f:
         f.write("3              bowhehrk 3 4 a 5we2323 ahwigaofgawbhdgawiugdal")
         f.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n finish?")
-    if useTpWithFile("testWeirdCase", file, useStdout = False) == b'':
+    if useTpWithFile("testWeirdCase", file, useStdout = False) != b'':
         remove("testWeirdCase")
         return True
     return False

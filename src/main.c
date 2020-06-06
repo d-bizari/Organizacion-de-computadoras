@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <errno.h>
 /************ MACROS ***************/
 #define FINISH                 2
 #define INPUT_POS              0
@@ -12,11 +13,12 @@
 #define DECIMAL         	   10
 #define MAX_INT_32      	   2147483647
 #define MIN_INT_32             (-INT32_MAX-1)
-#define MSG_COMMAND_UNKNOWN    "Command unknown, press -h for help"
+#define MSG_COMMAND_UNKNOWN    "Command unknown, press -h for help\n"
 #define MSG_HELP               "Usage:\ntp1 -h\ntp1 -V\ntp1 -i in_file -o out_file\nOptions:\n-V, --version Print version and quit.\n-h, --help Print this information and quit.\n-i, --input Specify input stream/file, \"-\" for stdin.\n-o, --output Specify output stream/file, \"-\" for stdout.\n"
-#define MSG_ERROR_OPEN_INPUT   "Error opening input file"
-#define MSG_ERROR_OPEN_OUTPUT  "Error opening output file"
-#define MSG_ERROR_MALLOC       "Error allocating memory"
+#define MSG_ERROR_OPEN_INPUT   "Error opening input file\n"
+#define MSG_ERROR_OPEN_OUTPUT  "Error opening output file\n"
+#define MSG_ERROR_MALLOC       "Error allocating memory\n"
+#define MSG_ERROR_CORRUPT_FILE "Unexpected input. Only integer numbers separated by whitespace are valid\n"
 #define VERSION                 0.1
 
 // Funcion escrita en assembly
@@ -164,9 +166,13 @@ int cliCmd(int argc, char const * argv[], FILE * files[]) {
 		if(**ptr2str == ' ' )  continue;
 		if(**ptr2str == '\n' ) break;
 
-		tmp = strtol(*ptr2str, ptr2str, DECIMAL); //Si el resultado no se puede representar devuelve cero, la funcion adelanta ptr2str hasta el proximo caracter numerico luego del num leido
-		if(tmp > MAX_INT_32 || tmp < MIN_INT_32)
-			tmp = 0;
+		char *str = *ptr2str;
+		errno = 0;
+		tmp = strtol(str, ptr2str, DECIMAL); //Si el resultado no se puede representar devuelve cero, la funcion adelanta ptr2str hasta el proximo caracter numerico luego del num leido
+		if (tmp > MAX_INT_32 || tmp < MIN_INT_32 || (errno != 0 && tmp == 0) || str == *ptr2str) {
+            fprintf(stderr, "%s", MSG_ERROR_CORRUPT_FILE);
+            return EXIT_FAILURE;
+		}
 
 		vector[size++] = (int) tmp;
 		if (!(size < maxValue)) {
