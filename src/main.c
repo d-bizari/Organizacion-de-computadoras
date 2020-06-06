@@ -18,7 +18,7 @@
 #define MSG_ERROR_OPEN_INPUT   "Error opening input file\n"
 #define MSG_ERROR_OPEN_OUTPUT  "Error opening output file\n"
 #define MSG_ERROR_MALLOC       "Error allocating memory\n"
-#define MSG_ERROR_CORRUPT_FILE "Error reading file, unexpected input. Only integer numbers separated by whitespace are valid\n"
+#define MSG_ERROR_CORRUPT_FILE "Unexpected input. Only integer numbers separated by whitespace are valid\n"
 #define VERSION                 0.1
 
 // Funcion escrita en assembly
