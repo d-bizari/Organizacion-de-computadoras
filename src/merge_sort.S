@@ -177,7 +177,7 @@ _return:
 	addu	sp, sp, 48
 	jr		ra
 
-# Escape en case de error.
+# Termina el programa en caso de error
 error_mymalloc:
 	li  a2, 18        # Cantidad de bytes a escribir, en este caso char = 1byte, 18 char = 18bytes
 	la  a1, msg_error # Pasamos puntero donde se encuentra primer char
