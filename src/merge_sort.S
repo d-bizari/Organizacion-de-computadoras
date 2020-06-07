@@ -81,7 +81,8 @@ exit_left:
     sll   t3, t0, 2 # Multiplico t0 por 4 y guardo en t3
     add t5, t5, t3 # array <- array + middle
 
-#Inicio del loop derecho, recibe por t4 el array, por t4 el largo y por t2 el largo del arreglo total,
+#Inicio del loop derecho, recibe por t5 la posicion del array entero desplazada a la mitad, 
+#por t4 un iterador, por t2 el largo del arreglo total, y por t6 el array derecho, y
 #guarda los elementos que correspondan en el array derecho.
 loop_right:
      bge  t4, t2, exit_right
