@@ -31,10 +31,12 @@ merge_sort:
 	srl   t0, a1, 1  # cargo en t0 = len / 2
   	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
 
-#Comienzo del pedido de memoria, recibe por t0 el tam del arreglo izquierdo y en 52(fp)
-#el tam del arreglo derecho, devuelve en 16(sp) el inicio del puntero izquierdo que tenga
-#la memoria reservada que fue pedida antes, y por 20(sp) el puntero al arreglo derecho.
-#en caso de error branch a error_mymalloc
+#Comienzo del pedido de memoria, recibe por 24(sp) el tam del arreglo izquierdo y en 52(fp)
+#el tam del arreglo entero para calcular el tamaño del arreglo derecho como (tamaño total - 
+#tamaño izquierdo), devuelve en 28(sp) el tamaño calculado del arreglo derecho, 
+#en 16(sp) el inicio del puntero izquierdo que tenga la memoria reservada que fue 
+#pedida antes, y por 20(sp) el puntero al arreglo derecho.
+#en caso de error salta a error_mymalloc
 mallocs:
 	#t1 size en bytes de memoria
 	sll   t1, t0, 2  		 # Multiplico por 4 (tamanio int)
