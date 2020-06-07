@@ -62,8 +62,8 @@ mallocs:
   	li t4, 0      # Iterador left
   	lw t5, 48(fp) # Cargo array en t5
   	lw t6, 16(sp) # Cargo left en t6
-#Inicio del loop izquierdo, recibe por t5 el array y por t6 el largo y guarda los
-#elementos que correspondan en el array izquierdo.
+#Inicio del loop izquierdo, recibe por t5 el array entero y por t6 el array izquierdo 
+#y carga los elementos que correspondan al array izquierdo.
 loop_left:
     # 16(sp) left, 48(fp) array
     bge t4, t0, exit_left
