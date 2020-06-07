@@ -8,7 +8,7 @@ msg_error: .asciiz "error in mymalloc\n"
 .align 2
 .globl merge_sort
 .ent merge_sort
-
+#Comienzo de la funcion mergesort, recibe el arreglo y su longitud
 merge_sort:
   	.frame	fp, 48, ra
 	.set	noreorder
@@ -30,12 +30,19 @@ merge_sort:
 
 	srl   t0, a1, 1  # cargo en t0 = len / 2
   	sw   t0, 24(sp) #Guardo t0 en LTA (local temporary area)
+
+#Comienzo del pedido de memoria, recibe por 24(sp) el tam del arreglo izquierdo y en 52(fp)
+#el tam del arreglo entero para calcular el tamaño del arreglo derecho como (tamaño total - 
+#tamaño izquierdo), devuelve en 28(sp) el tamaño calculado del arreglo derecho, 
+#en 16(sp) el inicio del puntero izquierdo que tenga la memoria reservada que fue 
+#pedida antes, y por 20(sp) el puntero al arreglo derecho.
+#en caso de error salta a error_mymalloc
 mallocs:
 	#t1 size en bytes de memoria
 	sll   t1, t0, 2  		 # Multiplico por 4 (tamanio int)
 	move  a0, t1     		 # argumento 0 size bytes
 	jal   mymalloc   		 # mymalloc(sizeof(int) * middle)
-	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc 
+	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc
   	lw    t0, 24(sp) 		 # Se esta guardando el middle(numero) del array left
 	sw    v0, 16(sp) 		 # 16(sp) = left
 
@@ -46,7 +53,7 @@ mallocs:
 	sll   t1, t2, 2  		 # Multiplico por 4 (tamanio int)
 	move  a0, t1     		 # argumento 0 size bytes
 	jal   mymalloc     		 # mymalloc(sizeof(int) * len - middle)
-	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc 
+	beqz  v0, error_mymalloc # if(mymalloc(sizeof(int) * middle) == NULL) branch to error_mymalloc
   	lw    t2, 28(sp)   		 # reload the len on t2 to be used in future steps
   	lw    t0, 24(sp) 		 # Se levanta devuelta el valor de t0 para estar seguros que conserva el valor
 	sw    v0, 20(sp)		 # 20(sp) = right
@@ -55,7 +62,8 @@ mallocs:
   	li t4, 0      # Iterador left
   	lw t5, 48(fp) # Cargo array en t5
   	lw t6, 16(sp) # Cargo left en t6
-
+#Inicio del loop izquierdo, recibe por t5 el array entero y por t6 el array izquierdo 
+#y carga los elementos que correspondan al array izquierdo.
 loop_left:
     # 16(sp) left, 48(fp) array
     bge t4, t0, exit_left
@@ -73,6 +81,9 @@ exit_left:
     sll   t3, t0, 2 # Multiplico t0 por 4 y guardo en t3
     add t5, t5, t3 # array <- array + middle
 
+#Inicio del loop derecho, recibe por t5 la posicion del array entero desplazada a la mitad, 
+#por t4 un iterador, por t2 el largo del arreglo total, y por t6 el array derecho, y
+#guarda los elementos que correspondan en el array derecho.
 loop_right:
      bge  t4, t2, exit_right
      lw   t7, 0(t5) # Cargo primer elemento de array en t7
@@ -95,6 +106,9 @@ exit_right:
     move  a1, t0     # Lo agrego en el argumento 1
     jal   merge_sort # #merge_sort(right, len - middle);
 
+#Se encarga de la parte de merge, recibe por 24(sp) y 28(sp) los largos de los arreglos izquierdos y derechos
+#respectivamente, y por 16(sp), 20(sp) y 48(sp) los arreglos izquierdos, derechos y total respectivamente,
+#luego prosigue al mergeLoop
 merge:
 	li      t0, 0      # t0 es para left, t1 es para right
 	li      t1, 0      # Cargo los registros t1 y t0 con cero
@@ -105,7 +119,7 @@ merge:
 	lw      t8, 48(sp) # Cargamos el arreglo total en t8
 	sll     t2, t2, 2  # Multiplico t2 por 4 asi se puede comparar correctamente con t0
 	sll     t3, t3, 2  # Rt arriba
-
+#Se encarga de mergear lo que reciba desde merge de manera ordenada.
 mergeLoop:
 	bge     t0, t2, exitLoop_l
 	bge     t1, t3, exitLoop_r # Condicion de quiebre (si i o j son mayores que el len)
@@ -146,6 +160,7 @@ exitLoop_r: # j = len_r, entonces llenamos left
 	add     t8, t8, 4  		 # Actualizo la posicion del arreglo en t8
 	j       exitLoop_r
 
+#Libera la memoria pedida desde mymalloc, recibe por 16(sp) y 20(sp) los arreglos pedidos
 frees:
     lw    t1, 16(sp) # Cargo el puntero del arreglo en t1
     move  a0, t1     # Lo pongo en el argumento 0
@@ -162,6 +177,7 @@ _return:
 	addu	sp, sp, 48
 	jr		ra
 
+# Termina el programa en caso de error
 error_mymalloc:
 	li  a2, 18        # Cantidad de bytes a escribir, en este caso char = 1byte, 18 char = 18bytes
 	la  a1, msg_error # Pasamos puntero donde se encuentra primer char

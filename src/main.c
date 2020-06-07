@@ -21,14 +21,20 @@
 #define MSG_ERROR_CORRUPT_FILE "Unexpected input. Only integer numbers separated by whitespace are valid\n"
 #define VERSION                 0.1
 
-// Funcion escrita en assembly
+// Recibe un arreglo de numeros y su cantidad de elementos, ordena el mismo arreglo.
+// En caso de quedarse sin memoria termina la ejecucion con un error.
 extern void merge_sort(int * array, size_t lenght);
 
-// Lee y parsea commands in line arguments
+// Recibe la cantidad de argumentos, los argumentos y un FILE * de tam 2 sobre el cual escribira
+// Las direcciones de entrada y salida, en ese orden. En caso de recibir un argumento
+// Prohibido, lo informara por stderr y devolver un EXIT_FAILURE, en caso contrario
+// Devuelve un EXIT_SUCCESS
 int cliCmd(int argc, char const * argv[], FILE * files[]);
 
-// Intenta parsear un string separado por espacios en un array de int
-// ante un error reporta por stderr y devuelve 0. Queda a cargo del cliente la liberacion de memoria.
+// Recibe una cadena que debe contener solo numeros y espacios, un vector sobre el cual se escribiran esos numeros
+//y un puntero a un numero.
+// Devuelve EXIT_SUCCESS si se pudieron escribir los numeros sobre la cadena acorde, EXIT_FAILURE si hubo cualquier error.
+// Queda a cargo del usuario la liberacion de memoria de result.
 int parser(char * line, int ** result, size_t * size_result);
 
 int main(int argc, const char * argv[]){
