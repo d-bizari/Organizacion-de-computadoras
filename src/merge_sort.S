@@ -160,7 +160,7 @@ exitLoop_r: # j = len_r, entonces llenamos left
 	add     t8, t8, 4  		 # Actualizo la posicion del arreglo en t8
 	j       exitLoop_r
 
-#Libera la memora pedida desde mymalloc, recibe por 16(sp) y 20(sp) los arreglos pedidos
+#Libera la memoria pedida desde mymalloc, recibe por 16(sp) y 20(sp) los arreglos pedidos
 frees:
     lw    t1, 16(sp) # Cargo el puntero del arreglo en t1
     move  a0, t1     # Lo pongo en el argumento 0
